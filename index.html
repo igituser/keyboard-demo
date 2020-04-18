@@ -16,47 +16,75 @@
 </html>
 
 <script>
-    //26个字母
-    var keys = {
-        '0':{0:'q', 1:'w', 2:'e', 3:'r', 4:'t', 5:'y', 6:'u', 7:'i', 8:'o', 9:'p', 'length':10},
-        '1':{0:'a', 1:'s', 2:'d', 3:'f', 4:'g', 5:'h', 6:'j', 7:'k', 8:'l', 'length':9},
-        '2':{0:'z', 1:'x', 2:'c', 3:'v', 4:'b', 5:'n', 6:'m', 'length':7},
-        'length':3
-    }
 
-    //键盘字母对应的网址
-    var hash = {
-        'a':'apple.com.cn',
-        'b':'bilibili.com',
-        'c':'',
-        'd':'',
-        'e':'eleme.cn',
-        'f':'qq.com',
-        'g':'github.com',
-        'h':'huawei.com',
-        'i':'',
-        'j':'juejin.im',
-        'k':'kingsoft.com',
-        'l':'lagou.com',
-        'm':'microsoft.com',
-        'n':'',
-        'o':'oppo.com',
-        'p':'',
-        'q':'',
-        'r':'redhat.com',
-        's':'smzdm.com',
-        't':'tencent.com',
-        'u':'',
-        'v':'v2ex.com',
-        'w':'weibo.com',
-        'x':'',
-        'y':'',
-        'z':'zol.com.cn'
-    }
-    //取出localStorage
-    var hashInLocalStorage = getFromLocalStorage('zzz');
-    if(hashInLocalStorage){
-        hash = hashInLocalStorage;
+    //1 初始化必要数据
+    var hash = init()['hash'];
+    var keys = init()['keys'];
+
+    //2 生成键盘
+    //遍历keys 生成kbd标签
+    generateKeyboard(keys, hash);
+
+    //3 监听用户动作
+    listenToUser();
+
+/** 代码组织结构，从线性转变成树状，这样结构更清晰，debug的时候只需关注树状某一层就行，就像排序我只
+ * 关注比我大的或者比我小的那一部分就行
+ *  **/
+
+
+
+
+    function init(){
+        //26个字母
+        var keys = {
+            '0':{0:'q', 1:'w', 2:'e', 3:'r', 4:'t', 5:'y', 6:'u', 7:'i', 8:'o', 9:'p', 'length':10},
+            '1':{0:'a', 1:'s', 2:'d', 3:'f', 4:'g', 5:'h', 6:'j', 7:'k', 8:'l', 'length':9},
+            '2':{0:'z', 1:'x', 2:'c', 3:'v', 4:'b', 5:'n', 6:'m', 'length':7},
+            'length':3
+        }
+
+        //键盘字母对应的网址
+        var hash = {
+            'a':'apple.com.cn',
+            'b':'bilibili.com',
+            'c':'',
+            'd':'',
+            'e':'eaby.com',
+            'f':'qq.com',
+            'g':'github.com',
+            'h':'huawei.com',
+            'i':'',
+            'j':'juejin.im',
+            'k':'kingsoft.com',
+            'l':'lagou.com',
+            'm':'microsoft.com',
+            'n':'nintendoswitch.com.cn/',
+            'o':'oppo.com',
+            'p':'',
+            'q':'',
+            'r':'redhat.com',
+            's':'smzdm.com',
+            't':'tencent.com',
+            'u':'',
+            'v':'v2ex.com',
+            'w':'weibo.com',
+            'x':'',
+            'y':'',
+            'z':'zol.com.cn'
+        }
+
+        //取出localStorage
+        var hashInLocalStorage = getFromLocalStorage('zzz');
+        if(hashInLocalStorage){
+            hash = hashInLocalStorage;
+        }
+
+        return {
+            "hash": hash,
+            "keys": keys
+        }
+
     }
 
     //获取localStorage
@@ -77,69 +105,93 @@
         return element;
     }
 
-/****
- * for 循环是while循环的“语法糖”
- * 
- * 
- */
+    function createSpan(textContent){
+        var span = tag('span');
+        span.textContent = textContent;
+        span.className = 'text';
+        return span;
+    }
 
+    function createButton(id){
+        var button = tag('button');
+        button.textContent = '编辑';
+        button.id = id;
 
-    //构造DOM结构
-    for(var index = 0; index < keys['length']; index = index + 1){
-        var div = tag('div');
-        main.appendChild(div);
-        var row = keys[index];
+        //注意闭包  原来用的是target事件对象，我自己用闭包解决的
+        button.onclick = (function(){
+            return function(){
+                x = window.prompt('给我个网址');
+                var key = this['id'];
+                hash[key] = x
 
-        for(var index2 = 0; index2 < row['length']; index2 = index2 + 1){
-            var kbd    = tag('kbd');
-            var button = tag('button');
-            var img    = tag('img');
-            var span   = tag('span');
-
-            kbd.textContent = row[index2];
-            kbd.className = 'key';
-            button.textContent = '编辑';
-            button.id = row[index2]
-            span.textContent = row[index2];
-            span.className = 'text';
-
-
-            if(hash[row[index2]]){
-                img.src = 'https://www.' + hash[row[index2]] + '/favicon.ico';
-            }else{
-                img.src = './img/point.png';
-                console.log(hash[row[index2]])
-            }
-
-            img.onerror = function(e){
-                e.target.src = './img/point.png';
-            }
-
-            //注意闭包  原来用的是target事件对象，我自己用闭包解决的
-            button.onclick = (function(btn){
-                return function(){
-                    // window.confirm(btn.id);
-                    x = window.prompt('给我个网址');
-                    hash[btn.id] = x
-                    //localStorage 必须存储的是序列化的值
-                    localStorage.setItem('zzz', JSON.stringify(hash));
+                var img2 = this.previousSibling;
+                img2.src = "https://"  + x + '/favicon.ico';
+                img2.onerror = function(xxx){
+                    xxx.target.src = "./img/point.png";
                 }
-            })(button)
 
-            kbd.appendChild(button);
-            kbd.appendChild(img);
-            kbd.appendChild(span);
-            div.appendChild(kbd);
+                //localStorage 必须存储的是序列化的值
+                localStorage.setItem('zzz', JSON.stringify(hash));
+            }
+        })()
+
+        return button;
+    }
+
+    function createImg(domain){
+        var img = tag('img');
+        if(domain){
+            img.src = 'https://www.' + domain + '/favicon.ico';
+        }else{
+            img.src = './img/point.png';
+            console.log(domain)
+        }
+
+        img.onerror = function(e){
+            e.target.src = './img/point.png';
+        }
+
+        return img;
+        
+    }
+
+
+    function generateKeyboard(keys, hash){
+        for(var index = 0; index < keys['length']; index = index + 1){
+            var div = tag('div');
+            main.appendChild(div);
+            var row = keys[index];
+    
+            for(var index2 = 0; index2 < row['length']; index2 = index2 + 1){
+                var kbd    = tag('kbd');
+                var button = createButton(row[index2]);
+                var img    = createImg(hash[row[index2]]);
+                var span   = createSpan(row[index2]);
+    
+                kbd.textContent = row[index2];
+                kbd.className = 'key';
+    
+                
+                div.appendChild(kbd);
+                kbd.appendChild(img);
+                kbd.appendChild(button);
+                kbd.appendChild(span);
+            }
+        }
+    }
+
+    function listenToUser(hash){
+        document.onkeypress = function(keyboardEvent){
+            console.log(hash[keyboardEvent.key])
+            website = 'http://' + hash[keyboardEvent.key]
+            // location.href = website;
+            /* 如何在标签打开新网站 */
+            window.open(website, "_blank")
         }
     }
 
 
-    document.onkeypress = function(keyboardEvent){
-        console.log(hash[keyboardEvent.key])
-        website = 'http://' + hash[keyboardEvent.key]
-        // location.href = website;
-        /* 如何在标签打开新网站 */
-        window.open(website, "_blank")
 
-    }
+
+
 </script>

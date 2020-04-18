@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+    <title>nav-demo</title>
+</head>
+<body>
+    <header></header>
+    <main>
+        <div class="wrapper" id="main"></div>
+    </main>
+    <footer></footer>
+</body>
+</html>
+
+<script>
+    //26个字母
+    var keys = {
+        '0':{0:'q', 1:'w', 2:'e', 3:'r', 4:'t', 5:'y', 6:'u', 7:'i', 8:'o', 9:'p', 'length':10},
+        '1':{0:'a', 1:'s', 2:'d', 3:'f', 4:'g', 5:'h', 6:'j', 7:'k', 8:'l', 'length':9},
+        '2':{0:'z', 1:'x', 2:'c', 3:'v', 4:'b', 5:'n', 6:'m', 'length':7},
+        'length':3
+    }
+
+    //键盘字母对应的网址
+    var hash = {
+        'a':'apple.com.cn',
+        'b':'bilibili.com',
+        'c':'',
+        'd':'',
+        'e':'eleme.cn',
+        'f':'qq.com',
+        'g':'github.com',
+        'h':'huawei.com',
+        'i':'',
+        'j':'juejin.im',
+        'k':'kingsoft.com',
+        'l':'lagou.com',
+        'm':'microsoft.com',
+        'n':'',
+        'o':'oppo.com',
+        'p':'',
+        'q':'',
+        'r':'redhat.com',
+        's':'smzdm.com',
+        't':'tencent.com',
+        'u':'',
+        'v':'v2ex.com',
+        'w':'weibo.com',
+        'x':'',
+        'y':'',
+        'z':'zol.com.cn'
+    }
+    //取出localStorage
+    var hashInLocalStorage = getFromLocalStorage('zzz');
+    if(hashInLocalStorage){
+        hash = hashInLocalStorage;
+    }
+
+    //获取localStorage
+    function getFromLocalStorage(name){
+        return JSON.parse(localStorage.getItem(name) || null)
+    }
+
+    //生成标签元素
+    function tag(tagName, attributes){
+        var element = document.createElement(tagName);
+
+        if(attributes){
+            for( var key in attributes){
+                element[kay] = attributes[kay]
+            }
+        }
+
+        return element;
+    }
+
+/****
+ * for 循环是while循环的“语法糖”
+ * 
+ * 
+ */
+
+
+    //构造DOM结构
+    for(var index = 0; index < keys['length']; index = index + 1){
+        var div = tag('div');
+        main.appendChild(div);
+        var row = keys[index];
+
+        for(var index2 = 0; index2 < row['length']; index2 = index2 + 1){
+            var kbd    = tag('kbd');
+            var button = tag('button');
+            var img    = tag('img');
+            var span   = tag('span');
+
+            kbd.textContent = row[index2];
+            kbd.className = 'key';
+            button.textContent = '编辑';
+            button.id = row[index2]
+            span.textContent = row[index2];
+            span.className = 'text';
+
+
+            if(hash[row[index2]]){
+                img.src = 'https://www.' + hash[row[index2]] + '/favicon.ico';
+            }else{
+                img.src = './img/point.png';
+                console.log(hash[row[index2]])
+            }
+
+            img.onerror = function(e){
+                e.target.src = './img/point.png';
+            }
+
+            //注意闭包  原来用的是target事件对象，我自己用闭包解决的
+            button.onclick = (function(btn){
+                return function(){
+                    // window.confirm(btn.id);
+                    x = window.prompt('给我个网址');
+                    hash[btn.id] = x
+                    //localStorage 必须存储的是序列化的值
+                    localStorage.setItem('zzz', JSON.stringify(hash));
+                }
+            })(button)
+
+            kbd.appendChild(button);
+            kbd.appendChild(img);
+            kbd.appendChild(span);
+            div.appendChild(kbd);
+        }
+    }
+
+
+    document.onkeypress = function(keyboardEvent){
+        console.log(hash[keyboardEvent.key])
+        website = 'http://' + hash[keyboardEvent.key]
+        // location.href = website;
+        /* 如何在标签打开新网站 */
+        window.open(website, "_blank")
+
+    }
+</script>
